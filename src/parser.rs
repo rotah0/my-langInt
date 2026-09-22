@@ -31,29 +31,51 @@ impl Parser {
          Ok(expr)
     }
     // 5.Разбор выражения - пока что только число
-    fn parse_expr(&mut self) -> Result<Expr,String> {
-     let left = self.parse_number()?;
+fn parse_expr(&mut self) -> Result<Expr, String> {
+    let mut left = self.parse_term()?;        
+
+    loop {
         let op = match self.peek() {
-            Some(Token::Plus) => Op::Add,
+            Some(Token::Plus)  => Op::Add,     
             Some(Token::Minus) => Op::Sub,
-            Some(Token::Slash) => Op::Div,
-            Some(Token::Star) => Op::Mul,
-            _ => return Ok(left),
+            _ => break,                        
         };
         self.advance();
-        let right = self.parse_number()?;
-        Ok(Expr::Binary { 
+        let right = self.parse_term()?;        
+        left = Expr::Binary {
             op,
             left: Box::new(left),
-            right: Box::new(right)
-        })
+            right: Box::new(right),
+        };
     }
-    fn parse_number(&mut self) -> Result<Expr,String> {
-        match self.advance() {
-            Some(Token::Number(n)) => Ok(Expr::Number(n)),
-            Some(other) => Err(format!("Ожидалось число, найдено: {:?}", other)),
-            None => Err("Неожиданный конец ввода".to_string()),
-        }
+
+    Ok(left)
+}
+   fn parse_factor(&mut self) -> Result<Expr, String> {
+    match self.advance() {
+        Some(Token::Number(n)) => Ok(Expr::Number(n)),
+        Some(other) => Err(format!("Ожидалось число, найдено: {:?}", other)),
+        None => Err("Неожиданный конец ввода".to_string()),
     }
-    
+}
+  fn parse_term(&mut self) -> Result<Expr, String> {
+    let mut left = self.parse_factor()?;
+
+    loop {
+        let op = match self.peek() {
+            Some(Token::Star)  => Op::Mul,
+            Some(Token::Slash) => Op::Div,
+            _ => break,
+        };
+        self.advance();
+        let right = self.parse_factor()?;
+        left = Expr::Binary {
+            op,
+            left: Box::new(left),
+            right: Box::new(right),
+        };
+    }
+
+    Ok(left)
+}
 }
