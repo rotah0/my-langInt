@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use crate::lexer::Token;
 use crate::ast::{Expr, Op};
 
@@ -54,6 +56,14 @@ fn parse_expr(&mut self) -> Result<Expr, String> {
    fn parse_factor(&mut self) -> Result<Expr, String> {
     match self.advance() {
         Some(Token::Number(n)) => Ok(Expr::Number(n)),
+        Some(Token::LParen) => {
+            let expr = self.parse_expr()?;
+            match self.advance() {
+                Some(Token::RParen) => Ok(expr),
+                Some(other) => Err(format!("Ожидалось ')', найдено: {:?}", other)),
+                None => Err("Неожиданный конец ввода, ожидалось ')'".to_string()),
+            }
+        }
         Some(other) => Err(format!("Ожидалось число, найдено: {:?}", other)),
         None => Err("Неожиданный конец ввода".to_string()),
     }

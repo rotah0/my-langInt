@@ -5,6 +5,8 @@ pub enum Token {
     Minus,
     Star,
     Slash,
+    LParen,
+    RParen,
 }
 pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
     let mut tokens = Vec::new();
@@ -35,7 +37,13 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
         } else if c == '/' {
             tokens.push(Token::Slash);
             i += 1;
-        }  else {
+        } else if c == '(' {
+            tokens.push(Token::LParen);
+            i += 1;
+        } else if c == ')' {
+            tokens.push(Token::RParen);
+            i += 1;
+        } else {
             return Err(format!("Неизвестный символ: '{}'", c));
         }
     }
